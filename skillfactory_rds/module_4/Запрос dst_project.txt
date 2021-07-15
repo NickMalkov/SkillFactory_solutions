@@ -1,0 +1,28 @@
+select 
+    f.flight_id,
+    f.flight_no,
+    f.departure_airport,
+    f.arrival_airport,
+    f.actual_departure::timestamp, 
+    f.actual_arrival::timestamp,
+    extract(epoch from f.actual_arrival - f.actual_departure)/60 as flight_duration,
+    a.model,
+    sum(tf.amount) as sum_tickets_sold
+from 
+    dst_project.flights as f  
+    full join dst_project.ticket_flights as tf on tf.flight_id = f.flight_id
+    full join dst_project.aircrafts as a on f.aircraft_code = a.aircraft_code
+where 
+    departure_airport = 'AAQ'
+    and (date_trunc('month', scheduled_departure) in ('2017-01-01','2017-02-01', '2017-12-01'))
+    and status not in ('Cancelled')
+group by 
+    f.flight_id,
+    f.flight_no,
+    f.departure_airport,
+    f.arrival_airport,
+    f.actual_departure, 
+    f.actual_arrival,
+    a.model
+order by
+    5
